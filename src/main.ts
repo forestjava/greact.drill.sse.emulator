@@ -23,7 +23,7 @@ async function bootstrap() {
   await app.listen(port);
 
   logger.log(`🚀 SSE Emulator запущен на порту ${port}`);
-  logger.log(`📡 SSE эндпоинт: http://localhost:${port}/sse/emulator`);
+  logger.log(`📡 SSE эндпоинт: http://localhost:${port}/sse/stream`);
   logger.log(`📊 Статус сервиса: http://localhost:${port}/sse/status`);
 }
 bootstrap();

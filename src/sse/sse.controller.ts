@@ -9,7 +9,7 @@ export class SseController {
 
   constructor(private readonly sseService: SseService) { }
 
-  @Get('emulator')
+  @Get('stream')
   streamDrillingData(@Res() response: Response, @Query('clientId') clientId?: string): void {
     const id = clientId || randomUUID();
 
