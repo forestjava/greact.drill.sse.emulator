@@ -19,7 +19,7 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Accept, Cache-Control',
   });
 
-  const port = parseInt(ENV.PORT, 10);
+  const port = parseInt(ENV.PORT);
   await app.listen(port);
 
   logger.log(`🚀 SSE Emulator запущен на порту ${port}`);
