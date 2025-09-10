@@ -1,6 +1,6 @@
 {
   "name": "sse-emulator",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "author": "",
   "private": true,
@@ -22,7 +22,7 @@
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-express": "^11.1.6",
     "@notionhq/client": "^5.0.0",
     "dotenv": "^17.2.2",
     "reflect-metadata": "^0.2.2",

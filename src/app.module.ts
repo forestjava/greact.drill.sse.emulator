@@ -8,4 +8,4 @@ import { NotionService } from './notion/notion.service';
   controllers: [SseController],
   providers: [SseService, NotionService],
 })
-export class AppModule { }
+export class AppModule {}

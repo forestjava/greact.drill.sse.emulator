@@ -6,11 +6,18 @@ export interface EnvironmentVariables {
 }
 
 export function validateEnvironment(): EnvironmentVariables {
-  const requiredVars = ['NOTION_API_KEY', 'NOTION_DATABASE_ID', 'SSE_INTERVAL', 'PORT'] as const;
+  const requiredVars = [
+    'NOTION_API_KEY',
+    'NOTION_DATABASE_ID',
+    'SSE_INTERVAL',
+    'PORT',
+  ] as const;
 
   for (const varName of requiredVars) {
     if (!process.env[varName]) {
-      throw new Error(`Отсутствует обязательная переменная окружения: ${varName}`);
+      throw new Error(
+        `Отсутствует обязательная переменная окружения: ${varName}`,
+      );
     }
   }
 

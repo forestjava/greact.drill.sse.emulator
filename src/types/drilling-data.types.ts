@@ -1,16 +1,18 @@
-export interface DrillingMessage {
-  timestamp: number;
-  payload: {
-    [tag: string]: number;
-  };
+import type { Response } from 'express';
+
+export interface DataMessage {
+  [tag: string]: number;
 }
 
-export interface NotionDrillingRow {
-  [key: string]: number;
+export interface EventMessage {
+  version: '1.0.0';
+  timestamp: number;
+  currentIndex: number;
+  values: DataMessage;
 }
 
 export interface SSEClient {
   id: string;
-  response: any;
+  response: Response;
   connectedAt: Date;
 }
