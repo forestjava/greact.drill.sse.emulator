@@ -65,10 +65,8 @@ export class NotionService implements OnModuleInit {
     return property?.number ?? 0;
   }
 
-  getNextDrillingData(): MessageEventDataValues {
-    if (this.drillingData.length === 0) {
-      throw new Error('Нет данных для отправки');
-    }
+  getNextDrillingData(): MessageEventDataValues | null {
+    if (this.drillingData.length === 0) return null;
 
     const currentRow = this.drillingData[this.currentIndex];
 

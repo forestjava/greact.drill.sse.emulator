@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Observable, Subject, interval } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
 import { MessageEvent, MessageEventData } from '../types/drilling-data.types';
 import { NotionService } from '../notion/notion.service';
 import { ENV } from '../config/env.config';
@@ -12,7 +11,23 @@ export class SseService {
   private readonly intervalMs: number;
 
   constructor(private readonly notionService: NotionService) {
-    this.intervalMs = parseInt(ENV.SSE_INTERVAL, 10);
+    this.intervalMs = parseInt(ENV.SSE_INTERVAL);
+    this.startBroadcast();
+  }
+
+  private startBroadcast(): void {
+    setInterval(() => {
+      const drillingDataValues = this.notionService.getNextDrillingData();
+      if (drillingDataValues) {
+        const drillingData: MessageEventData = {
+          version: '1.0.0',
+          timestamp: Date.now(),
+          currentIndex: this.notionService.getDataInfo().currentIndex,
+          values: drillingDataValues
+        }
+        this.broadcastEvent(drillingData);
+      }
+    }, this.intervalMs);
   }
 
   addClient(clientId: string): Observable<MessageEvent> {
