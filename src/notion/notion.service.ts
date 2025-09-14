@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Client, PartialDataSourceObjectResponse } from '@notionhq/client';
-import { DataMessage } from '../types/drilling-data.types';
+import { MessageEventDataValues } from '../types/drilling-data.types';
 import { ENV } from '../config/env.config';
 
 @Injectable()
@@ -8,7 +8,7 @@ export class NotionService implements OnModuleInit {
   private readonly logger = new Logger(NotionService.name);
   private notion: Client;
   private readonly dataSourceId: string;
-  private drillingData: DataMessage[] = [];
+  private drillingData: MessageEventDataValues[] = [];
   private currentIndex = 0;
 
   constructor() {
@@ -39,7 +39,7 @@ export class NotionService implements OnModuleInit {
       this.drillingData = response.results.map(
         (page: PartialDataSourceObjectResponse) => {
           const properties = page.properties;
-          const row: DataMessage = {};
+          const row: MessageEventDataValues = {};
 
           // Динамически обрабатываем все числовые поля
           Object.keys(properties).forEach((key) => {
@@ -65,7 +65,7 @@ export class NotionService implements OnModuleInit {
     return property?.number ?? 0;
   }
 
-  getNextDrillingData(): DataMessage {
+  getNextDrillingData(): MessageEventDataValues {
     if (this.drillingData.length === 0) {
       throw new Error('Нет данных для отправки');
     }

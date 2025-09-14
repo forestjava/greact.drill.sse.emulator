@@ -1,111 +1,50 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Response } from 'express';
-import { SSEClient, EventMessage } from '../types/drilling-data.types';
+import { Observable, Subject, interval } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { MessageEvent, MessageEventData } from '../types/drilling-data.types';
 import { NotionService } from '../notion/notion.service';
 import { ENV } from '../config/env.config';
 
 @Injectable()
 export class SseService {
   private readonly logger = new Logger(SseService.name);
-  private clients: Map<string, SSEClient> = new Map();
-  private broadcastInterval: NodeJS.Timeout;
+  private clients = new Map<string, Subject<MessageEvent>>();
   private readonly intervalMs: number;
 
   constructor(private readonly notionService: NotionService) {
     this.intervalMs = parseInt(ENV.SSE_INTERVAL, 10);
-    this.startBroadcast();
   }
 
-  addClient(clientId: string, response: Response): void {
-    const client: SSEClient = {
-      id: clientId,
-      response,
-      connectedAt: new Date(),
-    };
-
-    this.clients.set(clientId, client);
-    this.logger.log(
-      `Клиент подключен: ${clientId}. Всего клиентов: ${this.clients.size}`,
-    );
-
-    // Настраиваем заголовки SSE
-    response.status(200).set({
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control',
-    });
-
-    // Обрабатываем отключение клиента
-    response.on('close', () => {
-      this.removeClient(clientId);
-    });
-
-    response.on('error', (error) => {
-      this.logger.error(`Ошибка соединения с клиентом ${clientId}:`, error);
-      this.removeClient(clientId);
-    });
+  addClient(clientId: string): Observable<MessageEvent> {
+    const stream = new Subject<MessageEvent>();
+    this.clients.set(clientId, stream);
+    this.logger.log(`Клиент подключен: ${clientId}. Всего клиентов: ${this.clients.size}`);
+    return stream.asObservable();
   }
 
   removeClient(clientId: string): void {
-    if (this.clients.has(clientId)) {
+    const stream = this.clients.get(clientId);
+    if (stream) {
+      stream.complete();
       this.clients.delete(clientId);
-      this.logger.log(
-        `Клиент отключен: ${clientId}. Осталось клиентов: ${this.clients.size}`,
-      );
+      this.logger.log(`Клиент отключен: ${clientId}. Осталось клиентов: ${this.clients.size}`);
     }
   }
 
-  private startBroadcast(): void {
-    this.logger.log(
-      `Начинаем трансляцию данных с интервалом ${this.intervalMs}ms`,
-    );
-
-    this.broadcastInterval = setInterval(() => {
-      this.broadcastDrillingData();
-    }, this.intervalMs);
-  }
-
-  private stopBroadcast(): void {
-    clearInterval(this.broadcastInterval);
-    this.logger.log('Трансляция данных остановлена');
-  }
-
-  private broadcastDrillingData(): void {
-    if (this.clients.size === 0) {
-      return;
-    }
-
-    const drillingMessage = this.notionService.getNextDrillingData();
-    const dataInfo = this.notionService.getDataInfo();
-
-    const message: EventMessage = {
-      version: '1.0.0',
-      timestamp: Date.now(),
-      currentIndex: dataInfo.currentIndex,
-      values: drillingMessage,
+  // Отправка события всем подключенным клиентам
+  broadcastEvent(eventData: MessageEventData): void {
+    const messageEvent: MessageEvent = {
+      data: eventData,
     };
 
-    this.broadcast(message);
-  }
-
-  private broadcast(message: EventMessage): void {
-    this.clients.forEach((client) => {
-      this.sendToClient(client, message);
-    });
-  }
-
-  private sendToClient(client: SSEClient, message: any): void {
-    const data = JSON.stringify(message);
-    client.response.write(`data: ${data}\n\n`);
+    this.clients.forEach((stream) => stream.next(messageEvent));
   }
 
   getStatus() {
     return {
       clientsCount: this.clients.size,
       intervalMs: this.intervalMs,
-      clients: Array.from(this.clients.values()).map((client) => client.id),
+      clients: Array.from(this.clients.keys())
     };
   }
 

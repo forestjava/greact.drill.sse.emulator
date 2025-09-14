@@ -1,18 +1,17 @@
-import type { Response } from 'express';
+import { Subject } from 'rxjs';
 
-export interface DataMessage {
+export interface MessageEventDataValues {
   [tag: string]: number;
 }
 
-export interface EventMessage {
+export interface MessageEventData {
   version: '1.0.0';
   timestamp: number;
   currentIndex: number;
-  values: DataMessage;
+  values: MessageEventDataValues;
 }
 
-export interface SSEClient {
-  id: string;
-  response: Response;
-  connectedAt: Date;
+// Интерфейс MessageEvent для SSE согласно спецификации NestJS
+export interface MessageEvent {
+  data: MessageEventData;
 }
