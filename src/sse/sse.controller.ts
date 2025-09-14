@@ -1,4 +1,4 @@
-import { Controller, Get, Res, Logger, Query, Post } from '@nestjs/common';
+import { Controller, Get, Res, Logger, Query, Post, Header } from '@nestjs/common';
 import type { Response } from 'express';
 import { SseService } from './sse.service';
 import { randomUUID } from 'crypto';
@@ -7,9 +7,12 @@ import { randomUUID } from 'crypto';
 export class SseController {
   private readonly logger = new Logger(SseController.name);
 
-  constructor(private readonly sseService: SseService) {}
+  constructor(private readonly sseService: SseService) { }
 
   @Get('stream')
+  @Header('Cache-Control', 'no-store')
+  @Header('Pragma', 'no-cache')
+  @Header('Expires', '0')
   streamDrillingData(
     @Res() response: Response,
     @Query('clientId') clientId?: string,
